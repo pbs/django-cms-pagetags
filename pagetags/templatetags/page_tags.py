@@ -41,6 +41,7 @@ class SimilarPagesNode(template.Node):
         page_tags = page.page_tags.values()[0]['page_tags'].split(' ')
         tagged_pages = TaggedItem.objects.get_union_by_model(PageTagging, page_tags)
         result_pages = [Page.objects.get(pk=tagged_page.page_id) for tagged_page in tagged_pages]
+        context[self.var_name] = result_pages
         return ''
 
 
