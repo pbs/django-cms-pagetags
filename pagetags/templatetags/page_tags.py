@@ -12,7 +12,8 @@ class TaggedPagesNode(template.Node):
         self.format_string = format_string
         self.var_name = var_name
     def render(self, context):
-        tagged_pages = TaggedItem.objects.get_by_model(PageTagging, self.format_string.split(' '))
+        stripped_tags = [tag.strip() for tag in self.format_string.split(',') if tag.strip()]
+        tagged_pages = TaggedItem.objects.get_by_model(PageTagging, stripped_tags)
         result_pages = [Page.objects.get(pk=tagged_page.page_id) for tagged_page in tagged_pages]
         context[self.var_name] = result_pages
         return ''
@@ -38,10 +39,8 @@ class SimilarPagesNode(template.Node):
         self.var_name = var_name
     def render(self, context):
         page = Page.objects.get(id=int(self.format_string))
-        page_tags = page.page_tags.values()[0]['page_tags'].split(' ')
-        tagged_pages = TaggedItem.objects.get_union_by_model(PageTagging, page_tags)
-        result_pages = [Page.objects.get(pk=tagged_page.page_id) for tagged_page in tagged_pages]
-        context[self.var_name] = result_pages
+        result_pages = TaggedItem.objects.get_related(page.page_tags.all()[0], PageTagging)
+        context[self.var_name] = [pt.page for pt in result_pages]
         return ''
 
 
