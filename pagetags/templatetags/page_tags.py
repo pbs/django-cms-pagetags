@@ -1,6 +1,7 @@
 import re
 
 from django import template
+from django.conf import settings
 from cms.models import Page
 
 from tagging.models import TaggedItem
@@ -12,10 +13,24 @@ class TaggedPagesNode(template.Node):
         self.format_string = format_string
         self.var_name = var_name
     def render(self, context):
-        stripped_tags = [tag.strip() for tag in self.format_string.split(',') if tag.strip()]
-        tagged_pages = TaggedItem.objects.get_by_model(PageTagging, stripped_tags)
-        result_pages = [Page.objects.get(pk=tagged_page.page_id) for tagged_page in tagged_pages]
-        context[self.var_name] = result_pages
+        stripped_tags = [
+            tag.strip() for tag in self.format_string.split(',') if tag.strip()]
+        tagged_pages = TaggedItem.objects.get_by_model(
+            PageTagging.objects.filter(page__site=settings.SITE_ID), stripped_tags)
+        context[self.var_name] = [
+            Page.objects.get(pk=tagged_page.page_id) for tagged_page in tagged_pages]
+        return ''
+
+
+class SimilarPagesNode(template.Node):
+    def __init__(self, format_string, var_name):
+        self.format_string = format_string
+        self.var_name = var_name
+    def render(self, context):
+        page = Page.objects.get(id=int(self.format_string))
+        result_pages = TaggedItem.objects.get_related(
+            page.pagetagging, PageTagging.objects.filter(page__site=settings.SITE_ID))
+        context[self.var_name] = [page_tagging.page for page_tagging in result_pages]
         return ''
 
 
@@ -31,17 +46,6 @@ def get_tagged_pages(parser, token):
     if not (format_string[0] == format_string[-1] and format_string[0] in ('"', "'")):
         raise template.TemplateSyntaxError("%r tag's argument should be in quotes" % tag_name)
     return TaggedPagesNode(format_string[1:-1], var_name)
-
-
-class SimilarPagesNode(template.Node):
-    def __init__(self, format_string, var_name):
-        self.format_string = format_string
-        self.var_name = var_name
-    def render(self, context):
-        page = Page.objects.get(id=int(self.format_string))
-        result_pages = TaggedItem.objects.get_related(page.page_tags.all()[0], PageTagging)
-        context[self.var_name] = [pt.page for pt in result_pages]
-        return ''
 
 
 def get_similar_pages(parser, token):
