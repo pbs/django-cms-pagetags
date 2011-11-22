@@ -27,7 +27,7 @@ class SimilarPagesNode(template.Node):
         self.format_string = format_string
         self.var_name = var_name
     def render(self, context):
-        page = Page.objects.get(id=int(self.format_string))
+        page = Page.objects.get(title_set__title=self.format_string)
         result_pages = TaggedItem.objects.get_related(
             page.pagetagging, PageTagging.objects.filter(page__site=settings.SITE_ID))
         context[self.var_name] = [page_tagging.page for page_tagging in result_pages]
