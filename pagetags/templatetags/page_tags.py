@@ -6,45 +6,69 @@ from django.db.models import Q
 from cms.models import Page
 
 from tagging.models import TaggedItem
+from tagging.utils import parse_tag_input
 from pagetags.models import PageTagging
+
+
+register = template.Library()
 
 
 class TaggedPagesNode(template.Node):
     def __init__(self, format_string, var_name):
         self.format_string = format_string
         self.var_name = var_name
+
     def render(self, context):
-        stripped_tags = [
-            tag.strip() for tag in self.format_string.split(',') if tag.strip()]
-        tagged_pages = TaggedItem.objects.get_by_model(
-            PageTagging.objects.filter(page__site=settings.SITE_ID), stripped_tags)
-        context[self.var_name] = [
-            Page.objects.get(pk=tagged_page.page_id) for tagged_page in tagged_pages]
+        parsed_tags = parse_tag_input(self.format_string)
+
+        pagetaggings_from_site = PageTagging.objects.filter(
+            page__site=settings.SITE_ID
+        ).select_related()
+
+        pagetaggings = TaggedItem.objects.get_by_model(
+            pagetaggings_from_site, parsed_tags
+        )
+
+        context[self.var_name] = [pt.page for pt in pagetaggings]
         return ''
 
 
 class SimilarPagesNode(template.Node):
+
     def __init__(self, format_string, var_name):
         self.format_string = format_string
         self.var_name = var_name
+
     def render(self, context):
-        page = Page.objects.get(
-            Q(site=settings.SITE_ID), Q(title_set__slug=self.format_string))
-        result_pages = TaggedItem.objects.get_related(
-            page.pagetagging, PageTagging.objects.filter(page__site=settings.SITE_ID))
-        context[self.var_name] = [page_tagging.page for page_tagging in result_pages]
+
+        try:
+            page = Page.objects.get(
+                Q(site=settings.SITE_ID),
+                Q(title_set__slug=self.format_string)
+            )
+        except Page.DoesNotExist:
+            return ''
+
+        pagetaggings = TaggedItem.objects.get_related(
+            page.pagetagging,
+            PageTagging.objects.select_related().filter(
+                page__site=settings.SITE_ID
+            )
+        )
+
+        context[self.var_name] = [pt.page for pt in pagetaggings]
         return ''
 
 
-def get_tagged_pages(parser, token):
+@register.tag
+def pages_with_tags(parser, token):
     format_string, var_name = _validate_template(parser, token)
     return TaggedPagesNode(format_string, var_name)
 
-
-def get_similar_pages(parser, token):
+@register.tag
+def pages_similar_with(parser, token):
     format_string, var_name = _validate_template(parser, token)
     return SimilarPagesNode(format_string, var_name)
-
 
 def _validate_template(parser, token):
     try:
@@ -58,8 +82,3 @@ def _validate_template(parser, token):
     if not (format_string[0] == format_string[-1] and format_string[0] in ('"', "'")):
         raise template.TemplateSyntaxError("%r tag's argument should be in quotes" % tag_name)
     return format_string[1:-1], var_name
-
-
-register = template.Library()
-register.tag('pages_with_tags', get_tagged_pages)
-register.tag('pages_similar_with', get_similar_pages)
