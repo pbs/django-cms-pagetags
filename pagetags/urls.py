@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
 
 urlpatterns = patterns('pagetags.views',
-    url(r'^$', 'list_tags', name='pagetags_taglist'),
+    url(r'^$', 'list_tags'),
 )

@@ -1,7 +1,9 @@
 {% extends "admin/cms/page/change_form.html" %}
+{% load static %}
 
 {% block extrahead %}
     {{ block.super }}
+    <script type="text/javascript" src="{% get_static_prefix %}pagetags/autocomplete.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" type="text/css" />
