@@ -1,0 +1,7 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% get_static_prefix %}tagging_autocomplete/lib/jquery/jquery-ui.min.js"></script>
+{% endblock %}

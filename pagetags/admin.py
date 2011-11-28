@@ -19,6 +19,7 @@ class PageTaggingAdmin(admin.TabularInline):
 
 RegisteredPageAdmin = _get_registered_modeladmin(Page)
 RegisteredPageAdmin.inlines.append(PageTaggingAdmin)
+RegisteredPageAdmin.change_form_template = 'pagetags/change_form.html'
 
 try:
     admin.site.unregister(Page)
