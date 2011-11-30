@@ -1,10 +1,9 @@
 django-cms-pagetags
 ===================
 
-``pagetags`` is a `django-cms`_ plugin that allow you to tag django-cms pages. With
-this functionality in place now you group pages and iterate over them using custom
-templatetags. It also includes an autocomplete functionality to minimize the number
-of new tags.
+``pagetags`` is a `django-cms`_ plugin that allows you to tag django-cms pages. With
+this functionality in place now you can group pages and iterate over them using custom
+templatetags. For your convenience it comes with autocomplete functionality.
 
 Usage
 =====
@@ -38,6 +37,8 @@ Example
 =======
 
 Templatetag usage::
+
+    {% load page_tags %}
 
     {% pages_with_tags 'literature, painting' order alphabetical as page_list %}
     <ul>
