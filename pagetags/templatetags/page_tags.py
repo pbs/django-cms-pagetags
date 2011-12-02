@@ -13,6 +13,40 @@ from pagetags.models import PageTagging
 register = template.Library()
 
 
+class StaticSlug(unicode):
+    def bind(self, context):
+        pass
+
+class DynamicSlug(unicode):
+    def __init__(self, varname):
+        self.varname = varname
+        self._value = u''
+
+    def bind(self, context):
+        self._value = context[self.varname]
+
+    def __unicode__(self):
+        return self._value
+
+
+class StaticTags(list):
+    def __init__(self, tags):
+        super(StaticTags, self).__init__(parse_tag_input(tags))
+
+    def bind(self, context):
+        pass
+
+
+class DynamicTags(list):
+    def __init__(self, varname):
+        self.varname = varname
+        super(DynamicTags, self).__init__()
+
+    def bind(self, context):
+        self[:] = parse_tag_input(context.get(self.varname, ''))
+
+
+
 class TaggedPagesNode(template.Node):
     def __init__(self, parsed_tags, ordering, var_name):
         self.parsed_tags = parsed_tags
@@ -20,6 +54,7 @@ class TaggedPagesNode(template.Node):
         self.ordering = ordering or 'chronological'
 
     def render(self, context):
+        self.parsed_tags.bind(context)
         pagetaggings_from_site = PageTagging.objects.filter(
             page__site=settings.SITE_ID
         ).select_related()
@@ -45,15 +80,16 @@ class TaggedPagesNode(template.Node):
 
 
 class SimilarPagesNode(template.Node):
-    def __init__(self, page_slug, var_name):
-        self.page_slug = page_slug
+    def __init__(self, parsed_slug, var_name):
+        self.parsed_slug = parsed_slug
         self.var_name = var_name
 
     def render(self, context):
+        self.parsed_slug.bind(context)
         try:
             page = Page.objects.get(
                 Q(site=settings.SITE_ID),
-                Q(title_set__slug=self.page_slug)
+                Q(title_set__slug=self.parsed_slug)
             )
         except Page.DoesNotExist:
             return ''
@@ -79,12 +115,17 @@ def _extract_tag_content(token):
         )
     return tag_name, arg
 
-def _unquote_string_or_variable_value(quoted_or_var):
+def parsed_tags(quoted_or_var):
     if (quoted_or_var[0] == quoted_or_var[-1]
     and quoted_or_var[0] in ('"', "'")):
-        return quoted_or_var[1:-1]
-    #TODO: if var
-    return quoted_or_var
+        return StaticTags(tags=quoted_or_var[1:-1])
+    return DynamicTags(varname=quoted_or_var)
+
+def parse_slug(quoted_or_var):
+    if (quoted_or_var[0] == quoted_or_var[-1]
+    and quoted_or_var[0] in ('"', "'")):
+        return StaticSlug(quoted_or_var[1:-1])
+    return DynamicSlug(varname=quoted_or_var)
 
 
 @register.tag
@@ -101,15 +142,14 @@ def _parse_pages_with_tags(parser, token):
             "%r tag had invalid arguments" % tag_name
         )
     tags, _, ordering, var_name = m.groups()
-    parsed_tags = parse_tag_input(_unquote_string_or_variable_value(tags))
 
-    return parsed_tags, ordering, var_name
+    return parsed_tags(tags), ordering, var_name
 
 
 @register.tag
 def pages_similar_with(parser, token):
-    page_slug, var_name = _parse_pages_similar_with(parser, token)
-    return SimilarPagesNode(page_slug, var_name)
+    parsed_slug, var_name = _parse_pages_similar_with(parser, token)
+    return SimilarPagesNode(parsed_slug, var_name)
 
 def _parse_pages_similar_with(parser, token):
     tag_name, arg = _extract_tag_content(token)
@@ -121,4 +161,4 @@ def _parse_pages_similar_with(parser, token):
         )
     page_slug, var_name = m.groups()
 
-    return _unquote_string_or_variable_value(page_slug), var_name
+    return parse_slug(page_slug), var_name
