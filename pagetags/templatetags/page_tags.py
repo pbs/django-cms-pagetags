@@ -48,10 +48,11 @@ class DynamicTags(list):
 
 
 class TaggedPagesNode(template.Node):
-    def __init__(self, parsed_tags, ordering, var_name):
+    def __init__(self, parsed_tags, ordering, limit, var_name):
         self.parsed_tags = parsed_tags
-        self.var_name = var_name
         self.ordering = ordering or 'chronological'
+        self.limit = limit
+        self.var_name = var_name
 
     def render(self, context):
         self.parsed_tags.bind(context)
@@ -69,6 +70,8 @@ class TaggedPagesNode(template.Node):
                 '-page__publication_date'
             )
 
+        pagetaggings_from_site = pagetaggings_from_site[:self.limit]
+
         page_taggings = TaggedItem.objects.get_by_model(
             pagetaggings_from_site, self.parsed_tags
         )
@@ -80,8 +83,9 @@ class TaggedPagesNode(template.Node):
 
 
 class SimilarPagesNode(template.Node):
-    def __init__(self, parsed_slug, var_name):
+    def __init__(self, parsed_slug, limit, var_name):
         self.parsed_slug = parsed_slug
+        self.limit = limit
         self.var_name = var_name
 
     def render(self, context):
@@ -99,7 +103,7 @@ class SimilarPagesNode(template.Node):
             PageTagging.objects.select_related().filter(
                 page__site=settings.SITE_ID
             )
-        )
+        )[:self.limit]
         context[self.var_name] = [
             page_tagging.page for page_tagging in page_taggings
         ]
@@ -130,35 +134,52 @@ def parse_slug(quoted_or_var):
 
 @register.tag
 def pages_with_tags(parser, token):
-    parsed_tags, ordering, var_name = _parse_pages_with_tags(parser, token)
-    return TaggedPagesNode(parsed_tags, ordering, var_name)
+    parsed_tags, ordering, limit, var_name = _parse_pages_with_tags(token)
+    return TaggedPagesNode(parsed_tags, ordering, limit, var_name)
 
-def _parse_pages_with_tags(parser, token):
+def _parse_pages_with_tags(token):
     tag_name, arg = _extract_tag_content(token)
 
-    m = re.search(r'(.*?) (order (alphabetical|chronological) )*as (\w+)', arg)
+    m = re.search(r"""
+        (.*?)                                   # taglist or varname
+
+        (\s+ order                              # optional order clause
+            \s+(alphabetical|chronological)     # order combinations
+        )*
+
+        (\s+ limit \s+ (\d+))*                  # optional limit clause
+
+        \s+ as \s+ (\w+) \s*                    # collector variable
+    """, arg, flags=re.VERBOSE)
+
     if not m:
         raise template.TemplateSyntaxError(
             "%r tag had invalid arguments" % tag_name
         )
-    tags, _, ordering, var_name = m.groups()
+    tags, _, ordering, _, limit, var_name = m.groups()
 
-    return parsed_tags(tags), ordering, var_name
+    return parsed_tags(tags), ordering, int(limit), var_name
 
 
 @register.tag
-def pages_similar_with(parser, token):
-    parsed_slug, var_name = _parse_pages_similar_with(parser, token)
-    return SimilarPagesNode(parsed_slug, var_name)
+def pages_similar_with(token):
+    parsed_slug, limit, var_name = _parse_pages_similar_with(token)
+    return SimilarPagesNode(parsed_slug, limit, var_name)
 
-def _parse_pages_similar_with(parser, token):
+def _parse_pages_similar_with(token):
     tag_name, arg = _extract_tag_content(token)
 
-    m = re.search(r'(.*?) as (\w+)', arg)
+    m = re.search(r"""
+        (.*?)                                   # slug or varname
+
+        (\s+ limit \s+ (\d+))*                  # optional limit clause
+
+        \s+ as \s+ (\w+) \s*                    # collector variable
+    """, arg, flags=re.VERBOSE)
     if not m:
         raise template.TemplateSyntaxError(
             "%r tag had invalid arguments" % tag_name
         )
-    page_slug, var_name = m.groups()
+    page_slug, _, limit, var_name = m.groups()
 
-    return parse_slug(page_slug), var_name
+    return parse_slug(page_slug), limit, var_name
