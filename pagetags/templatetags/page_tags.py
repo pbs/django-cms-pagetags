@@ -70,11 +70,9 @@ class TaggedPagesNode(template.Node):
                 '-page__publication_date'
             )
 
-        pagetaggings_from_site = pagetaggings_from_site[:self.limit]
-
         page_taggings = TaggedItem.objects.get_by_model(
             pagetaggings_from_site, self.parsed_tags
-        )
+        )[:self.limit]
 
         context[self.var_name] = [
             page_tagging.page for page_tagging in page_taggings
@@ -158,11 +156,11 @@ def _parse_pages_with_tags(token):
         )
     tags, _, ordering, _, limit, var_name = m.groups()
 
-    return parsed_tags(tags), ordering, int(limit), var_name
+    return parsed_tags(tags), ordering, limit and int(limit), var_name
 
 
 @register.tag
-def pages_similar_with(token):
+def pages_similar_with(parser, token):
     parsed_slug, limit, var_name = _parse_pages_similar_with(token)
     return SimilarPagesNode(parsed_slug, limit, var_name)
 
