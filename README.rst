@@ -14,8 +14,8 @@ associate tags to a page.
 To iterate over existing pages based on tags you can use this templatetags:
 
 * ``pages_with_tags``: this templatetag takes tags as input strings and returns a list
-  of pages that share the same tags. This result list can be ordered alphabetical or
-  chronological using optional ordering keywords. The tags can be specified exactly
+  of pages that share the same tags. This result list can be ordered ``alphabetical`` or
+  ``chronological`` using optional ordering keywords. The tags can be specified exactly
   as in TagInput field.
 
 * ``pages_similar_with``: this templatetag takes a page slug as input and returns a
