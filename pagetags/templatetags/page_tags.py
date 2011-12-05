@@ -17,6 +17,7 @@ class StaticSlug(unicode):
     def bind(self, context):
         pass
 
+
 class DynamicSlug(unicode):
     def __init__(self, varname):
         self.varname = varname
@@ -44,7 +45,6 @@ class DynamicTags(list):
 
     def bind(self, context):
         self[:] = parse_tag_input(context.get(self.varname, ''))
-
 
 
 class TaggedPagesNode(template.Node):
@@ -117,11 +117,13 @@ def _extract_tag_content(token):
         )
     return tag_name, arg
 
+
 def parsed_tags(quoted_or_var):
     if (quoted_or_var[0] == quoted_or_var[-1]
     and quoted_or_var[0] in ('"', "'")):
         return StaticTags(tags=quoted_or_var[1:-1])
     return DynamicTags(varname=quoted_or_var)
+
 
 def parse_slug(quoted_or_var):
     if (quoted_or_var[0] == quoted_or_var[-1]
@@ -134,6 +136,7 @@ def parse_slug(quoted_or_var):
 def pages_with_tags(parser, token):
     parsed_tags, ordering, limit, var_name = _parse_pages_with_tags(token)
     return TaggedPagesNode(parsed_tags, ordering, limit, var_name)
+
 
 def _parse_pages_with_tags(token):
     tag_name, arg = _extract_tag_content(token)
@@ -163,6 +166,7 @@ def _parse_pages_with_tags(token):
 def pages_similar_with(parser, token):
     parsed_slug, limit, var_name = _parse_pages_similar_with(token)
     return SimilarPagesNode(parsed_slug, limit, var_name)
+
 
 def _parse_pages_similar_with(token):
     tag_name, arg = _extract_tag_content(token)
