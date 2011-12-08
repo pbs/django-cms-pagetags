@@ -1,5 +1,7 @@
 function autocomplete(id, url) {
 
+    var $ = _new_jq;
+
     function split(val) { return val.split(/,\s*/); }
     function extractLast(term) { return split(term).pop(); }
 
