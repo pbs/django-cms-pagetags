@@ -184,4 +184,4 @@ def _parse_pages_similar_with(token):
         )
     page_slug, _, limit, var_name = m.groups()
 
-    return parse_slug(page_slug), limit, var_name
+    return parse_slug(page_slug), limit and int(limit), var_name
