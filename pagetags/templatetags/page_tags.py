@@ -62,7 +62,7 @@ class TaggedPagesNode(template.Node):
 
         if self.ordering == 'alphabetical':
             pagetaggings_from_site = pagetaggings_from_site.order_by(
-                'page__title_set__slug'
+                'page__title_set__title'
             )
 
         if self.ordering == 'chronological':
