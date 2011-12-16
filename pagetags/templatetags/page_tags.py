@@ -18,7 +18,7 @@ class StaticSlug(unicode):
         pass
 
 
-class DynamicSlug(unicode):
+class DynamicSlug():
     def __init__(self, varname):
         self.varname = varname
         self._value = u''
