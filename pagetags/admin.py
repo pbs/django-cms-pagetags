@@ -32,7 +32,7 @@ class AutocompleteWidget(TextInput):
         return mark_safe(html + js)
 
 
-class PageTaggingAdmin(admin.TabularInline):
+class PageTaggingAdmin(admin.StackedInline):
     model = PageTagging
     fields = ('page_tags',)
     formfield_overrides = {
@@ -44,10 +44,7 @@ class PageTaggingAdmin(admin.TabularInline):
 
 
 RegisteredPageAdmin = _get_registered_modeladmin(Page)
-#XXX: django-cms changes the inlines dynamically based on the user rights but
-# fails to properly clean everything and breaks all inlines added at the end
-# of the list. Prepending the page tagging plugin fixes this.
-RegisteredPageAdmin.inlines = [PageTaggingAdmin] + RegisteredPageAdmin.inlines
+RegisteredPageAdmin.inlines.append(PageTaggingAdmin)
 RegisteredPageAdmin.change_form_template = 'pagetags/change_form.html'
 
 try:
