@@ -2,9 +2,10 @@ django-cms-pagetags
 ===================
 
 ``pagetags`` is a `django-cms`_ plugin that allows you to tag django-cms pages.
-With this functionality in place now you can group pages and iterate over them
-using custom templatetags. For your convenience it comes with autocomplete
-functionality. Works with `django-tagging`_ and `django-tagging-ng`_.
+With this functionality and corresponding templatetags in place you can group
+and list pages by their similarity, used tags and even create tag clouds. It
+works with `django-tagging`_ and `django-tagging-ng`_ and comes with
+autocomplete functionality.
 
 
 Usage
@@ -46,6 +47,9 @@ To iterate over existing pages based on tags you can use this templatetags:
 
     {% pages_similar_with <"pageslug" | varname> [limit <int>] as <varname> %}
 
+Also checkout templatetags in documentation of `django-tagging`_ or
+`django-tagging-ng`_.
+
 
 Settings
 ========
@@ -56,6 +60,7 @@ details about configuration options.
 Quick list for ``django-tagging``:
 
 * ``FORCE_LOWERCASE_TAGS``
+* ``MAX_TAG_LENGTH``
 
 Quick list for ``django-tagging-ng``:
 
@@ -93,7 +98,7 @@ Templatetag usage::
     http://code.google.com/p/django-tagging/
 
 .. _django-tagging-ng:
-    http://github.com/gw0/django-tagging-ng/
+    http://github.com/svetlyak40wt/django-tagging-ng
 
 .. _TagInput:
     http://api.rst2a.com/1.0/rst2/html?uri=http://django-tagging.googlecode.com/svn/trunk/docs/overview.txt#tag-input
