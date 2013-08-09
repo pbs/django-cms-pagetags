@@ -1,2 +1,2 @@
-recursive-include pagetags/ *.html
-recursive-include pagetags/ *.js
+recursive-include pagetags *.html
+recursive-include pagetags *.js

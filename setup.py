@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='django-cms-pagetags',
-    version='0.1.6',
+    version='0.1.7',
     description=('Tag fileds for CMS pages. Works with django-tagging or django-tagging-ng.'),
     keywords='django-cms django cms tags',
     author='Calin Furau',
