@@ -10,7 +10,7 @@ setup(
     url='https://github.com/pbs/django-cms-pagetags',
     packages=find_packages(),
     include_package_data=True,
-    setup_requires = ['s3sourcepackages'],
+    setup_requires = ['s3sourceuploader'],
     install_requires = ['django-tagging==0.3.1'],
     extras_require = {
         'multilang': ['django-tagging-ng'],
