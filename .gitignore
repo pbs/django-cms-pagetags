@@ -3,3 +3,4 @@
 *.pyc
 pytest-results.xml
 .tox
+*.pyo
