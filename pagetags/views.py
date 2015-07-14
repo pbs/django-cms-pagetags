@@ -18,4 +18,4 @@ def list_tags(request):
                 .filter(name__istartswith=q)
                 .values_list('name', flat=True))
     response = [ {'id':tag, 'label':tag, 'value':tag}  for tag in tags ]
-    return JsonResponse(response)
+    return JsonResponse(response, safe=False)
