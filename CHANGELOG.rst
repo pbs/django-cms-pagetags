@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+Revision 546f0a5 (23.09.2015, 15:29 UTC)
+----------------------------------------
+
+No new issues.
+
+* Misc commits
+
+  * Set django-tagging >= 0.3.1
+
 Revision 816c8ce (17.07.2015, 11:07 UTC)
 ----------------------------------------
 
